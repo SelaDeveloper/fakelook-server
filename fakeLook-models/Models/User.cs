@@ -1,17 +1,25 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace fakeLook_models.Models
 {
+    [Index(propertyNames: nameof(UserName),
+        IsUnique = true)]
+    
     public class User
     {
         public int Id { get; set; }
-        public string Name { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public string Password { get; set; }
         public string Address { get; set; }
+        [StringLength(450)]
+        public string UserName { get; set; }
 
         /* EF Relations */
         public virtual ICollection<Comment> Comments { get; set; }
@@ -19,5 +27,7 @@ namespace fakeLook_models.Models
         public virtual ICollection<Like> Likes { get; set; }
         public virtual ICollection<UserTaggedPost> UserTaggedPost { get; set; }
         public virtual ICollection<UserTaggedComment> UserTaggedComment { get; set; }
+        public virtual ICollection<User> BlockedUsers { get; set; }
+
     }
 }
