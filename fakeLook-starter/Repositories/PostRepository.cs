@@ -23,6 +23,14 @@ namespace fakeLook_starter.Repositories
             return res.Entity;
         }
 
+        public async Task<Post> Delete(int id)
+        {
+            var post = _context.Posts.Where(post => post.Id == id).Single();
+            _context.Posts.Remove(post);
+            await _context.SaveChangesAsync();
+            return post;
+        }
+
         public async Task<Post> Edit(Post item)
         {
             var res = _context.Posts.Update(item);
@@ -44,5 +52,7 @@ namespace fakeLook_starter.Repositories
         {
             return _context.Posts.Where(predicate).ToList();
         }
+
+        
     }
 }

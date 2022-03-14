@@ -13,6 +13,7 @@ namespace fakeLook_starter.Interfaces
         public Task<T> Edit(T item);
         public T GetById(int id);
         public ICollection<T> GetByPredicate(Func<T, bool> predicate);
+        public Task<T> Delete(int id);
     }
     public interface IUserRepository : IRepository<User>
     {
@@ -20,6 +21,6 @@ namespace fakeLook_starter.Interfaces
     }
     public interface IPostRepository : IRepository<Post>
     {
-
+        
     }
 }
