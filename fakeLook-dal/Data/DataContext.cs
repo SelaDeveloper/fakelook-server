@@ -13,6 +13,7 @@ namespace fakeLook_dal.Data
         public DbSet<Like> Likes { get; set; }
         public DbSet<UserTaggedComment> UserTaggedComments { get; set; }
         public DbSet<UserTaggedPost> UserTaggedPosts { get; set; }
+        public DbSet<Group> Groups { get; set; }
 
 
         public DataContext(DbContextOptions<DataContext> options) : base(options)

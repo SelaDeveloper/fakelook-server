@@ -71,6 +71,7 @@ namespace fakeLook_starter
             app.UseHttpsRedirection();
 
             app.UseRouting();
+            app.UseCors(_MyAllowSpecificOrigin);
 
             app.UseAuthorization();
 

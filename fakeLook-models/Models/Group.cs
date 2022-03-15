@@ -17,7 +17,7 @@ namespace fakeLook_models.Models
 
         [StringLength(450)]
         public string GroupName { get; set; }
-        public virtual ICollection<User> users { get; set; }
+        public virtual ICollection<User> Users { get; set; }
 
 
     }
