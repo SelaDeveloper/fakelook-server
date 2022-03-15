@@ -1,6 +1,7 @@
 ﻿using fakeLook_dal.Data;
 using fakeLook_models.Models;
 using fakeLook_starter.Interfaces;
+using fakeLook_starter.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace fakeLook_starter.Repositories
 
         public async Task<User> Add(User item)
         {
+            item.Password = Encryptions.MyEncryption(item.Password);
             var res = _context.Users.Add(item);
             await _context.SaveChangesAsync();
             return res.Entity;
@@ -51,6 +53,11 @@ namespace fakeLook_starter.Repositories
         public ICollection<User> GetByPredicate(Func<User, bool> predicate)
         {
             return _context.Users.Where(predicate).ToList();
+        }
+
+        public User GetByUserName(string username)
+        {
+            return _context.Users.SingleOrDefault(p => p.UserName == username);
         }
     }
 }
