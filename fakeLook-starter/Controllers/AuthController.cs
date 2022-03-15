@@ -3,6 +3,7 @@ using fakeLook_starter.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using fakeLook_starter.Utilities;
 
 namespace fakeLook_starter.Controllers
 {
@@ -24,18 +25,30 @@ namespace fakeLook_starter.Controllers
         [Route("Login")]
         public IActionResult Login([FromBody] User user)
         {
-            var dbUser = _userRepository.GetById(user.Id); //need to check username and password
+            var dbUser = _userRepository.GetByUserName(user.UserName); //need to check username and password
             if (dbUser == null) return Problem("user not in system");
-            var token = _tokenService.CreateToken(dbUser);
-            return Ok(new { token });
+            if (dbUser.Password == Encryptions.MyEncryption(user.Password))
+            {
+                var token = _tokenService.CreateToken(dbUser);
+                return Ok(new { token });
+            }
+            return Problem("Invalid Password");
         }
         [HttpPost]
         [Route("SignUp")]
         public IActionResult SignUp([FromBody] User user)
         {
-            var dbUser =  _userRepository.Add(user).Result;
-            var token = _tokenService.CreateToken(dbUser);
-            return Ok(new { token });
+            var isUserExist = _userRepository.GetByUserName(user.UserName);
+            if (isUserExist == null)
+            {
+                var dbUser = _userRepository.Add(user).Result;
+                var token = _tokenService.CreateToken(dbUser);
+                return Ok(new { token });
+            }
+            else
+            {
+                return Problem("user already exist");
+            }
         }
 
     }

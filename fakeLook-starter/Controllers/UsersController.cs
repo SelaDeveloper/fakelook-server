@@ -25,18 +25,18 @@ namespace fakeLook_starter.Controllers
         }
 
         // GET api/<UsersController>/5
-        [HttpGet("{id}")]
-        public User Get(int id)
+        [HttpGet("{UserName}")]
+        public User Get(string userName)
         {
-            return _userRepository.GetById(id);
+            return _userRepository.GetByUserName(userName);
         }
 
         // POST api/<UsersController>
-        [HttpPost]
-        public async Task<ActionResult<User>> Post([FromBody] User user)
-        {
-            return await _userRepository.Add(user);
-        }
+        //[HttpPost]
+        //public async Task<ActionResult<User>> Post([FromBody] User user)
+        //{
+        //    return await _userRepository.Add(user);
+        //}
 
         // PUT api/<UsersController>/5
         //[HttpPut("{id}")]

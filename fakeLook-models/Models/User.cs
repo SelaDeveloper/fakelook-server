@@ -20,6 +20,7 @@ namespace fakeLook_models.Models
         public string Address { get; set; }
         [StringLength(450)]
         public string UserName { get; set; }
+        //need to add age
 
         /* EF Relations */
         public virtual ICollection<Comment> Comments { get; set; }
