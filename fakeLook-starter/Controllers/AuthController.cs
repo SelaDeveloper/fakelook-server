@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using fakeLook_starter.Utilities;
+using fakeLook_starter.Filter;
 
 namespace fakeLook_starter.Controllers
 {
@@ -49,6 +50,15 @@ namespace fakeLook_starter.Controllers
             {
                 return Problem("user already exist");
             }
+        }
+
+        [HttpGet]
+        [Route("TestAll")]
+        [TypeFilter(typeof(GetUserActionFilter))]
+
+        public IActionResult TestAll()
+        {
+            return Ok();
         }
 
     }
