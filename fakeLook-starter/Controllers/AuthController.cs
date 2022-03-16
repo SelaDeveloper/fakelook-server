@@ -31,7 +31,7 @@ namespace fakeLook_starter.Controllers
             if (dbUser.Password == Encryptions.MyEncryption(user.Password))
             {
                 var token = _tokenService.CreateToken(dbUser);
-                return Ok(new { token });
+                return Ok(new { token, dbUser.Id });
             }
             return Problem("Invalid Password");
         }
@@ -44,7 +44,7 @@ namespace fakeLook_starter.Controllers
             {
                 var dbUser = _userRepository.Add(user).Result;
                 var token = _tokenService.CreateToken(dbUser);
-                return Ok(new { token });
+                return Ok(new { token, dbUser.Id });
             }
             else
             {
