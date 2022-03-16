@@ -51,6 +51,7 @@ namespace fakeLook_starter
 
             services.AddControllers();
             #region Setting repository and services interfaces
+            services.AddTransient<IDtoConverter, DtoConverter>();
             services.AddTransient<IPostRepository, PostRepository>();
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<ITokenService, TokenService>();
