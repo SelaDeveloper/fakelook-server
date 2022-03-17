@@ -31,9 +31,9 @@ namespace fakeLook_dal.Data
             modelBuilder.Entity<User>().HasMany(u => u.UserTaggedPost).WithOne(utp => utp.User).OnDelete(DeleteBehavior.NoAction);
             ;
             //posts
-            modelBuilder.Entity<Post>().HasMany(p => p.Likes).WithOne(l => l.Post).OnDelete(DeleteBehavior.NoAction);
-            modelBuilder.Entity<Post>().HasMany(p => p.Comments).WithOne(c => c.Post).OnDelete(DeleteBehavior.NoAction);
-            modelBuilder.Entity<Post>().HasMany(p => p.UserTaggedPost).WithOne(utp => utp.Post).OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Post>().HasMany(p => p.Likes).WithOne(l => l.Post).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Post>().HasMany(p => p.Comments).WithOne(c => c.Post).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Post>().HasMany(p => p.UserTaggedPost).WithOne(utp => utp.Post).OnDelete(DeleteBehavior.Cascade);
             ;
             //comment
             modelBuilder.Entity<Comment>().HasMany(c => c.UserTaggedComment).WithOne(utc => utc.Comment).OnDelete(DeleteBehavior.NoAction);
