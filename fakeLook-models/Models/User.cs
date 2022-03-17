@@ -20,7 +20,7 @@ namespace fakeLook_models.Models
         public string Address { get; set; }
         [StringLength(450)]
         public string UserName { get; set; }
-        public int Age { get; set; }
+        public int? Age { get; set; }
         public string WorkPlace { get; set; }
         //need to add age
 
