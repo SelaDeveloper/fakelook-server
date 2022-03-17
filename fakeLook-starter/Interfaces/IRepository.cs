@@ -23,4 +23,9 @@ namespace fakeLook_starter.Interfaces
     {
         
     }
+    public interface IGroupRepository : IRepository<Group>
+    {
+        public Task<Group> DeleteByGroupName(string groupName);
+        public Group GetByGroupName(string groupName);
+    }
 }
