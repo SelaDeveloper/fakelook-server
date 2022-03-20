@@ -21,11 +21,16 @@ namespace fakeLook_starter.Interfaces
     }
     public interface IPostRepository : IRepository<Post>
     {
-        
+        public Task<Post> LikeUnLike(int postId, int userId);
     }
     public interface IGroupRepository : IRepository<Group>
     {
         public Task<Group> DeleteByGroupName(string groupName);
         public Group GetByGroupName(string groupName);
+    }
+
+    public interface ITagRepository : IRepository<Tag>
+    {
+        public Task<List<Tag>> AddTags(ICollection<Tag> tags);
     }
 }
