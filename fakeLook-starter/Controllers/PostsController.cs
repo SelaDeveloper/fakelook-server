@@ -35,7 +35,8 @@ namespace fakeLook_starter.Controllers
         [HttpPost]
         public async Task<ActionResult <Post>> Post ([FromBody] Post post)
         {
-            return await _postRepository.Add(post);
+            var p = await _postRepository.Add(post);
+            return p;
         }
 
         // PUT api/<PostsController>/5
@@ -52,6 +53,12 @@ namespace fakeLook_starter.Controllers
             return await _postRepository.Delete(id);
         }
 
-        
+        [HttpPost("LikeUnLike")]
+        public async Task<ActionResult<Post>> LikeUnLike(int postId, int userId)
+        {
+             return await _postRepository.LikeUnLike(postId, userId);
+        }
+
+
     }
 }

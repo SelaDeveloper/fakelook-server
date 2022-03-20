@@ -6,16 +6,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using fakeLook_starter.Services;
+
 
 namespace fakeLook_starter.Repositories
 {
     public class UserRepository : IUserRepository
     {
         readonly private DataContext _context;
+        readonly private IDtoConverter _dtoConverter;
 
-        public UserRepository(DataContext dataContext)
+        public UserRepository(DataContext dataContext, IDtoConverter dtoConverter)
         {
             _context = dataContext;
+            _dtoConverter = dtoConverter;
         }
 
 
@@ -42,12 +46,13 @@ namespace fakeLook_starter.Repositories
 
         public ICollection<User> GetAll()
         {
-            return _context.Users.ToList();
+            return _context.Users.Select(u => _dtoConverter.DtoUser(u)).ToList();
         }
 
         public User GetById(int id)
         {
-            return _context.Users.SingleOrDefault(p => p.Id == id);
+            return _dtoConverter.DtoUser(_context.Users.
+                SingleOrDefault(u => u.Id == id));
         }
 
         public ICollection<User> GetByPredicate(Func<User, bool> predicate)

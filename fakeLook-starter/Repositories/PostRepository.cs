@@ -13,19 +13,25 @@ namespace fakeLook_starter.Repositories
     {
         readonly private DataContext _context;
         readonly private IDtoConverter _dtoConverter;
-        public PostRepository(DataContext context, IDtoConverter dtoConverter)
+        readonly private ITagRepository _tagRepository;
+
+        public PostRepository(DataContext context, IDtoConverter dtoConverter,
+            ITagRepository tagRepository)
         {
             _context = context;
             _dtoConverter = dtoConverter;
-
+            _tagRepository = tagRepository;
         }
 
         public async Task<Post> Add(Post item)
         {
+            AddTagsToPost(item.Tags);
             var res = _context.Posts.Add(item);
+            res.Entity.UserTaggedPost.Union(item.UserTaggedPost);
             await _context.SaveChangesAsync();
             return res.Entity;
         }
+
 
         public async Task<Post> Delete(int id)
         {
@@ -39,48 +45,82 @@ namespace fakeLook_starter.Repositories
         {
             var res = _context.Posts.Update(item);
             await _context.SaveChangesAsync();
-            return res.Entity;
+            return DtoLogic(res.Entity);
         }
 
         public ICollection<Post> GetAll()
-        
-            {
-                var posts = _context.Posts.OrderByDescending(d => d.Date)
-                    .Include(p => p.Likes)
-                    .Include(p => p.Tags)
-                    .Include(p => p.User)
-                    .Include(p => p.Comments)
-                    .ThenInclude(c => c.User)
-                    .Include(p => p.Comments)
-                    .ThenInclude(c => c.Tags)
-                    .Include(p => p.Comments)
-                    .ThenInclude(c => c.UserTaggedComment)
-                    .Select(DtoLogic).ToList();
-                return posts;
-            }
-        
+        {
+            var posts = _context.Posts
+                .OrderByDescending(d => d.Date)
+                .Include(p => p.Likes)
+                .Include(p => p.Tags)
+                .Include(p => p.UserTaggedPost)
+                .Include(p => p.Comments)
+                .ThenInclude(c => c.Tags)
+                .Include(p => p.Comments)
+                .ThenInclude(c => c.UserTaggedComment)
+                .Select(DtoLogic).ToList();
+            return posts;
+        }
+
 
         public Post GetById(int id)
         {
-            return _context.Posts.SingleOrDefault(p => p.Id == id);
+            var post = _context.Posts
+                .Include(p => p.Likes)
+                .Include(p => p.Tags)
+                .Include(p => p.UserTaggedPost)
+                .Include(p => p.Comments)
+                .ThenInclude(c => c.Tags)
+                .Include(p => p.Comments)
+                .ThenInclude(c => c.UserTaggedComment)
+                .Select(DtoLogic).SingleOrDefault(p => p.Id == id);
+            return post;
         }
 
-        public ICollection<Post> GetByPredicate(Func<Post,bool> predicate)
+        public ICollection<Post> GetByPredicate(Func<Post, bool> predicate)
         {
             return _context.Posts.Where(predicate).ToList();
+        }
+
+        public async Task<Post> LikeUnLike(int postId, int userId)
+        {
+            Post post = GetById(postId);
+            Like like = post.Likes.Where(l => l.PostId == postId && l.UserId == userId).
+                SingleOrDefault();
+            if(like == null)
+            {
+              _context.Posts.Where(p => p.Id == postId).SingleOrDefault().Likes
+                    .Append(new Like() { UserId = userId , PostId = postId, IsActive = true});
+            }
+            else
+            {
+                bool wantedLikeValue = !like.IsActive;
+                _context.Posts.Where(p => p.Id == postId).SingleOrDefault().Likes.
+                    Where(l => l.UserId == userId).SingleOrDefault().IsActive = wantedLikeValue;
+                //l.IsActive = !l.IsActive;
+            }
+            post = GetById(postId);
+            await _context.SaveChangesAsync();
+            return post;
+        }
+
+        private void AddTagsToPost(ICollection<Tag> tags)
+        {
+            _tagRepository.AddTags(tags);
         }
 
         private Post DtoLogic(Post post)
         {
             var dtoPost = _dtoConverter.DtoPost(post);
             // User
-            dtoPost.User = _dtoConverter.DtoUser(post.User);
+            dtoPost.UserId = post.UserId;
             // Comments
             dtoPost.Comments = post.Comments?.Select(c =>
             {
                 var dtoComment = _dtoConverter.DtoComment(c);
                 // User of the comment
-                dtoComment.User = _dtoConverter.DtoUser(c.User);
+                dtoComment.UserId = c.UserId;
                 // Tags of the comment
                 dtoComment.Tags = c.Tags?.Select(t =>
                 {
@@ -99,8 +139,10 @@ namespace fakeLook_starter.Repositories
             dtoPost.Likes = post.Likes?.Select(c =>
             {
                 var dtoLike = _dtoConverter.DtoLike(c);
+                dtoLike.Id = c.Id;
                 // User of the like
-                dtoLike.User = _dtoConverter.DtoUser(c.User);
+                dtoLike.UserId = c.UserId;
+                dtoLike.PostId = c.PostId;
                 // IsActive of the like
                 dtoLike.IsActive = c.IsActive;
                 return dtoLike;
