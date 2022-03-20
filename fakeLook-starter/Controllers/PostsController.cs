@@ -59,6 +59,22 @@ namespace fakeLook_starter.Controllers
              return await _postRepository.LikeUnLike(postId, userId);
         }
 
+        [HttpPost]
+        [Route("/Filter")]
+        public ICollection<Post> Filter([FromBody] PostFilter filter)
+        {
+            var res = _postRepository.GetByPredicate(post =>
+            {
+
+                bool date = filter.checkDate(post.Date);
+                bool publishers = filter.checkPublishers(_postRepository.ConvetUserIdToUserName(post.UserId));
+                bool taggs = filter.checkTaggs(post.Tags);
+                bool taggedUsers = filter.checkTaggedUsers(post.UserTaggedPost);
+                return date && publishers && taggedUsers && taggs;
+            });
+            return res;
+        }
+
 
     }
 }

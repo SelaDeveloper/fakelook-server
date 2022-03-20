@@ -27,19 +27,20 @@ namespace fakeLook_starter.Repositories
             foreach (var tag in tags)
             {
                 var t = _context.Tags.Where(t => t.Content == tag.Content).SingleOrDefault();
-                if (t == null)
+                if (t != null)
                 {
-                    var addedTag = _context.Tags.Add(tag);
-                    addedTags.Add(addedTag.Entity);
+                    addedTags.Add(t);
                 }
                 else
                 {
-                    addedTags.Add(t);
+                    var addedTag = _context.Tags.Add(tag);
+                    addedTags.Add(addedTag.Entity);
                 }
             }
             await _context.SaveChangesAsync();
             return addedTags;
         }
+
 
         public Task<Tag> Delete(int id)
         {
