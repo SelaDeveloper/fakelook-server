@@ -14,20 +14,41 @@ namespace fakeLook_starter.Repositories
         readonly private DataContext _context;
         readonly private IDtoConverter _dtoConverter;
         readonly private ITagRepository _tagRepository;
+        readonly private IUserRepository _userRepository;
+        readonly private ICommentRepository _commentRepository;
 
         public PostRepository(DataContext context, IDtoConverter dtoConverter,
-            ITagRepository tagRepository)
+            ITagRepository tagRepository, IUserRepository userRepository,
+            ICommentRepository commentRepository)
         {
             _context = context;
             _dtoConverter = dtoConverter;
             _tagRepository = tagRepository;
+            _userRepository = userRepository;
+            _commentRepository = commentRepository;
         }
 
         public async Task<Post> Add(Post item)
         {
-            AddTagsToPost(item.Tags);
+            List<Tag> tags = new List<Tag>();
+            List<Tag> tagsList = new List<Tag>();
+            List<UserTaggedPost> taggedUserList = new List<UserTaggedPost>();
+            tagsList = item.Tags.ToList();
+            taggedUserList = item.UserTaggedPost.ToList();
+            item.Tags.Clear();
+            item.UserTaggedPost.Clear();
+            tags = await AddTagsToPost(tagsList);
             var res = _context.Posts.Add(item);
-            res.Entity.UserTaggedPost.Union(item.UserTaggedPost);
+            foreach (var tag in tags)
+            {
+                res.Entity.Tags.Add(tag);
+            }
+            foreach (var userTagged in taggedUserList)
+            {
+                int id = _userRepository.GetByUserName(userTagged.User.UserName).Id;
+                res.Entity.UserTaggedPost.Add(new UserTaggedPost { UserId = id, PostId = item.Id });
+            }
+            //res.Entity.UserTaggedPost.Union(item.UserTaggedPost);
             await _context.SaveChangesAsync();
             return res.Entity;
         }
@@ -43,9 +64,39 @@ namespace fakeLook_starter.Repositories
 
         public async Task<Post> Edit(Post item)
         {
-            var res = _context.Posts.Update(item);
+            List<Tag> tags = new List<Tag>();
+            List<Tag> tagsList = new List<Tag>();
+            List<UserTaggedPost> userTaggedList = new List<UserTaggedPost>();
+            tagsList = item.Tags.ToList();
+            userTaggedList = item.UserTaggedPost.ToList();
+            // Clear the post's tags and userTagged
+            item.Tags.Clear();
+            item.UserTaggedPost.Clear();
+            // Clear the post's tags and userTagged from context
+            var tagsC = _context.Posts
+                .Include(p => p.Tags)
+                .Include(p => p.UserTaggedPost)
+                .Where(p => p.Id == item.Id).SingleOrDefault();
+            tagsC.Tags.Clear();
+            tagsC.UserTaggedPost.Clear();
+            // Add tags to post - tag table
+            tags = await AddTagsToPost(tagsList);
+            // Update the post without the tags 
+            var res = _context.Posts.Update(tagsC);
+            // Add new Taggs to post
+            foreach (var tag in tags)
+            {
+                res.Entity.Tags.Add(tag);
+            }
+            // Add new userTagged to post
+            foreach (var userTagged in userTaggedList)
+            {
+                int id = _userRepository.GetByUserName(userTagged.User.UserName).Id;
+                res.Entity.UserTaggedPost.Add(new UserTaggedPost { UserId = id, PostId = item.Id });
+                //res.Entity.UserTaggedPost.Add(userTagged);
+            }
             await _context.SaveChangesAsync();
-            return DtoLogic(res.Entity);
+            return res.Entity;
         }
 
         public ICollection<Post> GetAll()
@@ -80,7 +131,19 @@ namespace fakeLook_starter.Repositories
 
         public ICollection<Post> GetByPredicate(Func<Post, bool> predicate)
         {
-            return _context.Posts.Where(predicate).ToList();
+            return _context.Posts.Include(p => p.Tags)
+                .Include(p => p.UserTaggedPost)
+                .ThenInclude(p => p.User)
+                .Select(DtoLogicReduced)
+                .Where(predicate).ToList();
+        }
+
+        public string ConvetUserIdToUserName(int id)
+        {
+            string userName = string.Empty;
+            userName = _context.Users.Where(u => u.Id == id)
+                .SingleOrDefault().UserName;
+            return userName;
         }
 
         public async Task<Post> LikeUnLike(int postId, int userId)
@@ -88,10 +151,10 @@ namespace fakeLook_starter.Repositories
             Post post = GetById(postId);
             Like like = post.Likes.Where(l => l.PostId == postId && l.UserId == userId).
                 SingleOrDefault();
-            if(like == null)
+            if (like == null)
             {
-              _context.Posts.Where(p => p.Id == postId).SingleOrDefault().Likes
-                    .Append(new Like() { UserId = userId , PostId = postId, IsActive = true});
+                _context.Posts.Where(p => p.Id == postId).SingleOrDefault().Likes
+                      .Append(new Like() { UserId = userId, PostId = postId, IsActive = true });
             }
             else
             {
@@ -105,9 +168,36 @@ namespace fakeLook_starter.Repositories
             return post;
         }
 
-        private void AddTagsToPost(ICollection<Tag> tags)
+        public async Task<Comment> AddCommentToPost(Comment comment)
         {
-            _tagRepository.AddTags(tags);
+            return await _commentRepository.Add(comment);
+        }
+
+        private async Task<List<Tag>> AddTagsToPost(ICollection<Tag> tags)
+        {
+            return await _tagRepository.AddTags(tags);
+        }
+
+        private Post DtoLogicReduced(Post post)
+        {
+            var dtoPost = _dtoConverter.DtoPost(post);
+            // User ID
+            dtoPost.UserId = post.UserId;
+            // Tags
+            dtoPost.Tags = post.Tags?.Select(c =>
+            {
+                var dtoTag = _dtoConverter.DtoTag(c);
+                return dtoTag;
+            }).ToArray();
+            // UserTaggedPost
+            dtoPost.UserTaggedPost = post.UserTaggedPost?.Select(u =>
+            {
+                var dtoTaggedPost = _dtoConverter.DtoUserTaggedPost(u);
+                dtoTaggedPost.User = _dtoConverter.DtoUser(u.User);
+                return dtoTaggedPost;
+            }).ToArray();
+
+            return dtoPost;
         }
 
         private Post DtoLogic(Post post)

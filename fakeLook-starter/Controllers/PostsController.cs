@@ -40,8 +40,9 @@ namespace fakeLook_starter.Controllers
         }
 
         // PUT api/<PostsController>/5
-        [HttpPut("{id}")]
-        public async Task<ActionResult<Post>> Put(int id, [FromBody] Post post)
+        [HttpPut]
+        [Route("/EditPost")]
+        public async Task<ActionResult<Post>> Put([FromBody] Post post)
         {
             return await _postRepository.Edit(post);
         }
@@ -57,6 +58,29 @@ namespace fakeLook_starter.Controllers
         public async Task<ActionResult<Post>> LikeUnLike(int postId, int userId)
         {
              return await _postRepository.LikeUnLike(postId, userId);
+        }
+
+        [HttpPost]
+        [Route("/Filter")]
+        public ICollection<Post> Filter([FromBody] PostFilter filter)
+        {
+            var res = _postRepository.GetByPredicate(post =>
+            {
+
+                bool date = filter.checkDate(post.Date);
+                bool publishers = filter.checkPublishers(_postRepository.ConvetUserIdToUserName(post.UserId));
+                bool taggs = filter.checkTaggs(post.Tags);
+                bool taggedUsers = filter.checkTaggedUsers(post.UserTaggedPost);
+                return date && publishers && taggedUsers && taggs;
+            });
+            return res;
+        }
+
+        [HttpPost]
+        [Route("/AddComment")]
+        public async Task<ActionResult<Comment>> AddCommentToPost([FromBody] Comment comment)
+        {
+            return await _postRepository.AddCommentToPost(comment);
         }
 
 

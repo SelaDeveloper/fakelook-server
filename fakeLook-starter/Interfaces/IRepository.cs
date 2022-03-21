@@ -22,6 +22,9 @@ namespace fakeLook_starter.Interfaces
     public interface IPostRepository : IRepository<Post>
     {
         public Task<Post> LikeUnLike(int postId, int userId);
+        public string ConvetUserIdToUserName(int id);
+        public Task<Comment> AddCommentToPost(Comment comment);
+
     }
     public interface IGroupRepository : IRepository<Group>
     {
@@ -32,5 +35,10 @@ namespace fakeLook_starter.Interfaces
     public interface ITagRepository : IRepository<Tag>
     {
         public Task<List<Tag>> AddTags(ICollection<Tag> tags);
+    }
+
+    public interface ICommentRepository : IRepository<Comment>
+    {
+
     }
 }
