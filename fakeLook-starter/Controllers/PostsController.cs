@@ -40,8 +40,9 @@ namespace fakeLook_starter.Controllers
         }
 
         // PUT api/<PostsController>/5
-        [HttpPut("{id}")]
-        public async Task<ActionResult<Post>> Put(int id, [FromBody] Post post)
+        [HttpPut]
+        [Route("/EditPost")]
+        public async Task<ActionResult<Post>> Put([FromBody] Post post)
         {
             return await _postRepository.Edit(post);
         }
@@ -73,6 +74,13 @@ namespace fakeLook_starter.Controllers
                 return date && publishers && taggedUsers && taggs;
             });
             return res;
+        }
+
+        [HttpPost]
+        [Route("/AddComment")]
+        public async Task<ActionResult<Comment>> AddCommentToPost([FromBody] Comment comment)
+        {
+            return await _postRepository.AddCommentToPost(comment);
         }
 
 

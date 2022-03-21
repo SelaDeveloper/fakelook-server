@@ -15,14 +15,17 @@ namespace fakeLook_starter.Repositories
         readonly private IDtoConverter _dtoConverter;
         readonly private ITagRepository _tagRepository;
         readonly private IUserRepository _userRepository;
+        readonly private ICommentRepository _commentRepository;
 
         public PostRepository(DataContext context, IDtoConverter dtoConverter,
-            ITagRepository tagRepository, IUserRepository userRepository)
+            ITagRepository tagRepository, IUserRepository userRepository,
+            ICommentRepository commentRepository)
         {
             _context = context;
             _dtoConverter = dtoConverter;
             _tagRepository = tagRepository;
             _userRepository = userRepository;
+            _commentRepository = commentRepository;
         }
 
         public async Task<Post> Add(Post item)
@@ -61,6 +64,7 @@ namespace fakeLook_starter.Repositories
 
         public async Task<Post> Edit(Post item)
         {
+            List<Tag> tags = new List<Tag>();
             List<Tag> tagsList = new List<Tag>();
             List<UserTaggedPost> userTaggedList = new List<UserTaggedPost>();
             tagsList = item.Tags.ToList();
@@ -75,17 +79,21 @@ namespace fakeLook_starter.Repositories
                 .Where(p => p.Id == item.Id).SingleOrDefault();
             tagsC.Tags.Clear();
             tagsC.UserTaggedPost.Clear();
+            // Add tags to post - tag table
+            tags = await AddTagsToPost(tagsList);
             // Update the post without the tags 
             var res = _context.Posts.Update(tagsC);
             // Add new Taggs to post
-            foreach (var tag in tagsList)
+            foreach (var tag in tags)
             {
                 res.Entity.Tags.Add(tag);
             }
             // Add new userTagged to post
             foreach (var userTagged in userTaggedList)
             {
-                res.Entity.UserTaggedPost.Add(userTagged);
+                int id = _userRepository.GetByUserName(userTagged.User.UserName).Id;
+                res.Entity.UserTaggedPost.Add(new UserTaggedPost { UserId = id, PostId = item.Id });
+                //res.Entity.UserTaggedPost.Add(userTagged);
             }
             await _context.SaveChangesAsync();
             return res.Entity;
@@ -158,6 +166,11 @@ namespace fakeLook_starter.Repositories
             post = GetById(postId);
             await _context.SaveChangesAsync();
             return post;
+        }
+
+        public async Task<Comment> AddCommentToPost(Comment comment)
+        {
+            return await _commentRepository.Add(comment);
         }
 
         private async Task<List<Tag>> AddTagsToPost(ICollection<Tag> tags)
