@@ -30,25 +30,26 @@ namespace fakeLook_starter.Repositories
 
         public async Task<Post> Add(Post item)
         {
-            List<Tag> tags = new List<Tag>();
-            List<Tag> tagsList = new List<Tag>();
-            List<UserTaggedPost> taggedUserList = new List<UserTaggedPost>();
-            tagsList = item.Tags.ToList();
-            taggedUserList = item.UserTaggedPost.ToList();
-            item.Tags.Clear();
+            List<UserTaggedPost> taggedUserList = item.UserTaggedPost.ToList();
+            // Clear the Taggs of the post
+            //item.Tags.Clear();
             item.UserTaggedPost.Clear();
-            tags = await AddTagsToPost(tagsList);
+            // Add tags to post - tag table
+            item.Tags = await AddTagsToPost(item.Tags.ToList());
+            // Add tag to context
             var res = _context.Posts.Add(item);
-            foreach (var tag in tags)
-            {
-                res.Entity.Tags.Add(tag);
-            }
+            User u = _userRepository.GetById(item.UserId);
+            item.User.UserName = u.UserName;
             foreach (var userTagged in taggedUserList)
             {
-                int id = _userRepository.GetByUserName(userTagged.User.UserName).Id;
-                res.Entity.UserTaggedPost.Add(new UserTaggedPost { UserId = id, PostId = item.Id });
+
+                User tempU = _userRepository.GetByUserName(userTagged.User.UserName);
+                if (tempU == null) { continue; }
+                //User user = new User { Id = id, UserName = _userRepository.GetById(id).UserName };
+                User user = _userRepository.GetById(tempU.Id);
+                res.Entity.UserTaggedPost.Add(new UserTaggedPost { UserId = tempU.Id, PostId = item.Id, User = user });
             }
-            //res.Entity.UserTaggedPost.Union(item.UserTaggedPost);
+            // Add User object to Post
             await _context.SaveChangesAsync();
             return res.Entity;
         }
@@ -105,11 +106,16 @@ namespace fakeLook_starter.Repositories
                 .OrderByDescending(d => d.Date)
                 .Include(p => p.Likes)
                 .Include(p => p.Tags)
+                .Include(p => p.User)
                 .Include(p => p.UserTaggedPost)
+                .ThenInclude(p => p.User)
+                .Include(p => p.Comments)
+                .ThenInclude(p => p.User)
                 .Include(p => p.Comments)
                 .ThenInclude(c => c.Tags)
                 .Include(p => p.Comments)
                 .ThenInclude(c => c.UserTaggedComment)
+                .ThenInclude(p => p.User)
                 .Select(DtoLogic).ToList();
             return posts;
         }
@@ -120,11 +126,16 @@ namespace fakeLook_starter.Repositories
             var post = _context.Posts
                 .Include(p => p.Likes)
                 .Include(p => p.Tags)
+                .Include(p => p.User)
                 .Include(p => p.UserTaggedPost)
+                .ThenInclude(p => p.User)
+                .Include(p => p.Comments)
+                .ThenInclude(p => p.User)
                 .Include(p => p.Comments)
                 .ThenInclude(c => c.Tags)
                 .Include(p => p.Comments)
                 .ThenInclude(c => c.UserTaggedComment)
+                .ThenInclude(p => p.User)
                 .Select(DtoLogic).SingleOrDefault(p => p.Id == id);
             return post;
         }
@@ -154,7 +165,7 @@ namespace fakeLook_starter.Repositories
             if (like == null)
             {
                 _context.Posts.Where(p => p.Id == postId).SingleOrDefault().Likes
-                      .Append(new Like() { UserId = userId, PostId = postId, IsActive = true });
+                      .Add(new Like() { UserId = userId, PostId = postId, IsActive = true });
             }
             else
             {
@@ -204,12 +215,16 @@ namespace fakeLook_starter.Repositories
         {
             var dtoPost = _dtoConverter.DtoPost(post);
             // User
+            dtoPost.User = _dtoConverter.DtoUser(post.User);
+            // User ID
             dtoPost.UserId = post.UserId;
             // Comments
             dtoPost.Comments = post.Comments?.Select(c =>
             {
                 var dtoComment = _dtoConverter.DtoComment(c);
                 // User of the comment
+                dtoComment.User = _dtoConverter.DtoUser(c.User);
+                // User ID of the comment
                 dtoComment.UserId = c.UserId;
                 // Tags of the comment
                 dtoComment.Tags = c.Tags?.Select(t =>
@@ -221,6 +236,7 @@ namespace fakeLook_starter.Repositories
                 dtoComment.UserTaggedComment = c.UserTaggedComment?.Select(t =>
                 {
                     var dtoUserTaggedComment = _dtoConverter.DtoUserTaggedComment(t);
+                    dtoUserTaggedComment.User = _dtoConverter.DtoUser(t.User);
                     return dtoUserTaggedComment;
                 }).ToArray();
                 return dtoComment;
@@ -229,12 +245,16 @@ namespace fakeLook_starter.Repositories
             dtoPost.Likes = post.Likes?.Select(c =>
             {
                 var dtoLike = _dtoConverter.DtoLike(c);
+                // Like Id of like
                 dtoLike.Id = c.Id;
                 // User of the like
-                dtoLike.UserId = c.UserId;
-                dtoLike.PostId = c.PostId;
+                //dtoLike.User = _dtoConverter.DtoUser(c.User);
                 // IsActive of the like
                 dtoLike.IsActive = c.IsActive;
+                // UserId of like
+                dtoLike.UserId = c.UserId;
+                // PostId of like
+                dtoLike.PostId = c.PostId;
                 return dtoLike;
             }).ToArray();
             // Tags
@@ -247,6 +267,7 @@ namespace fakeLook_starter.Repositories
             dtoPost.UserTaggedPost = post.UserTaggedPost?.Select(u =>
             {
                 var dtoTaggedPost = _dtoConverter.DtoUserTaggedPost(u);
+                dtoTaggedPost.User = _dtoConverter.DtoUser(u.User);
                 return dtoTaggedPost;
             }).ToArray();
 

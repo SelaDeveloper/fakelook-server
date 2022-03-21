@@ -12,9 +12,11 @@ namespace fakeLook_starter.Repositories
     public class TagRepository : ITagRepository
     {
         readonly private DataContext _context;
-        public TagRepository(DataContext dataContext)
+        readonly private IDtoConverter _dtoConverter;
+        public TagRepository(DataContext dataContext, IDtoConverter dtoConverter)
         {
             _context = dataContext;
+            _dtoConverter = dtoConverter;
         }
         public Task<Tag> Add(Tag item)
         {
@@ -54,7 +56,7 @@ namespace fakeLook_starter.Repositories
 
         public ICollection<Tag> GetAll()
         {
-            throw new NotImplementedException();
+             return _context.Tags.Select(DtoLogicReduced).ToList();
         }
 
         public Tag GetById(int id)
@@ -65,6 +67,12 @@ namespace fakeLook_starter.Repositories
         public ICollection<Tag> GetByPredicate(Func<Tag, bool> predicate)
         {
             throw new NotImplementedException();
+        }
+
+        private Tag DtoLogicReduced(Tag tag)
+        {
+            var dtoTag = _dtoConverter.DtoTag(tag);
+            return dtoTag;
         }
     }
 }

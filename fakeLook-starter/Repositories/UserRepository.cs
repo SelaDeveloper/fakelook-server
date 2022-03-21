@@ -51,8 +51,8 @@ namespace fakeLook_starter.Repositories
 
         public User GetById(int id)
         {
-            return _dtoConverter.DtoUser(_context.Users.
-                SingleOrDefault(u => u.Id == id));
+            return _context.Users.
+                SingleOrDefault(u => u.Id == id);
         }
 
         public ICollection<User> GetByPredicate(Func<User, bool> predicate)
