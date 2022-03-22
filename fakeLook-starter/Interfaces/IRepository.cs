@@ -18,6 +18,7 @@ namespace fakeLook_starter.Interfaces
     public interface IUserRepository : IRepository<User>
     {
         public User GetByUserName(string username);
+        public Task<User> ChangePassword(string userName, string newPassword);
     }
     public interface IPostRepository : IRepository<Post>
     {
