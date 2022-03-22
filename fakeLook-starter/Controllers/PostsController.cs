@@ -43,7 +43,7 @@ namespace fakeLook_starter.Controllers
 
         // PUT api/<PostsController>/5
         [HttpPut]
-        [Route("/EditPost")]
+        [Route("EditPost")]
         public async Task<ActionResult<Post>> Put([FromBody] Post post)
         {
             return await _postRepository.Edit(post);
@@ -63,7 +63,7 @@ namespace fakeLook_starter.Controllers
         }
 
         [HttpPost]
-        [Route("/Filter")]
+        [Route("Filter")]
         public ICollection<Post> Filter([FromBody] PostFilter filter)
         {
             var res = _postRepository.GetByPredicate(post =>
@@ -79,7 +79,7 @@ namespace fakeLook_starter.Controllers
         }
 
         [HttpPost]
-        [Route("/AddComment")]
+        [Route("AddComment")]
         public async Task<ActionResult<Post>> AddCommentToPost([FromBody] Comment comment)
         {
             return await _postRepository.AddCommentToPost(comment);
