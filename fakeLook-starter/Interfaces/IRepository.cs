@@ -24,7 +24,7 @@ namespace fakeLook_starter.Interfaces
     {
         public Task<Post> LikeUnLike(int postId, int userId);
         public string ConvetUserIdToUserName(int id);
-        public Task<Comment> AddCommentToPost(Comment comment);
+        public Task<Post> AddCommentToPost(Comment comment);
 
     }
     public interface IGroupRepository : IRepository<Group>
