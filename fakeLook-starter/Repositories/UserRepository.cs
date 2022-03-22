@@ -31,6 +31,19 @@ namespace fakeLook_starter.Repositories
             return res.Entity;
         }
 
+        public async Task<User> ChangePassword(string userName, string newPassword)
+        {
+            User userToChangePassword = this.GetByUserName(userName);
+            if (userToChangePassword != null)
+            {
+                userToChangePassword.Password = Encryptions.MyEncryption(newPassword);
+                var res = _context.Users.Update(userToChangePassword);
+                await _context.SaveChangesAsync();
+                return userToChangePassword;
+            }
+            return null;
+        }
+
         public async Task<User> Delete(int id)
         {
             var user = _context.Users.Where(user => user.Id == id).Single();

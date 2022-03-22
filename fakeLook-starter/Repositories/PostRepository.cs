@@ -179,9 +179,16 @@ namespace fakeLook_starter.Repositories
             return post;
         }
 
-        public async Task<Comment> AddCommentToPost(Comment comment)
+        public async Task<Post> AddCommentToPost(Comment item)
         {
-            return await _commentRepository.Add(comment);
+
+            //return await _commentRepository.Add(comment);
+            // Add Comment through the CommentRepository
+            var comment = await _commentRepository.Add(item);
+            // Add Comment to post
+            //Post post = 
+            //await _context.SaveChangesAsync();
+            return GetById(item.PostId); 
         }
 
         private async Task<List<Tag>> AddTagsToPost(ICollection<Tag> tags)

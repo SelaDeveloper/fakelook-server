@@ -80,7 +80,7 @@ namespace fakeLook_starter.Controllers
 
         [HttpPost]
         [Route("/AddComment")]
-        public async Task<ActionResult<Comment>> AddCommentToPost([FromBody] Comment comment)
+        public async Task<ActionResult<Post>> AddCommentToPost([FromBody] Comment comment)
         {
             return await _postRepository.AddCommentToPost(comment);
         }

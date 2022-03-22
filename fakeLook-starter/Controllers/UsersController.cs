@@ -38,11 +38,12 @@ namespace fakeLook_starter.Controllers
         //    return await _userRepository.Add(user);
         //}
 
-        // PUT api/<UsersController>/5
-        //[HttpPut("{id}")]
-        //public void Put(int id, [FromBody] string value)
-        //{
-        //}
+        //put api/<userscontroller>/5
+        [HttpPut("userName")]
+        public User ChangePassword(string userName, string newPassword)
+        {
+            return _userRepository.ChangePassword(userName, newPassword).Result;
+        }
 
         // DELETE api/<UsersController>/5
         //[HttpDelete("{id}")]
