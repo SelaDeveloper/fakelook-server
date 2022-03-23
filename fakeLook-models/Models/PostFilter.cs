@@ -54,7 +54,7 @@ namespace fakeLook_models.Models
         public bool checkDate(DateTime postDate)
         {
             if (startDate.Equals(new DateTime(2000, 01, 01)) || endDate.Equals(new DateTime(2000, 01, 01))) return true;
-            if (postDate >= startDate && postDate <= endDate)
+            if (postDate >= startDate && postDate <= endDate.AddDays(1))
                 return true;
             return false;
         }
