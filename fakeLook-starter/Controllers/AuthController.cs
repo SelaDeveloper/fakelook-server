@@ -61,5 +61,11 @@ namespace fakeLook_starter.Controllers
             return Ok();
         }
 
+        [HttpPut("userName")]
+        public User ChangePassword(string userName, string newPassword)
+        {
+            return _userRepository.ChangePassword(userName, newPassword).Result;
+        }
+
     }
 }
