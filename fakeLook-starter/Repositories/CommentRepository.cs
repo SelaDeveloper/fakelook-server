@@ -46,6 +46,7 @@ namespace fakeLook_starter.Repositories
             // Add new userTagged to comment
             foreach (var userTagged in userTaggedList)
             {
+                if (userTagged.User.UserName == "") break;
                 int id = _userRepository.GetByUserName(userTagged.User.UserName).Id;
                 res.Entity.UserTaggedComment.Add(new UserTaggedComment { UserId = id, CommentId = res.Entity.Id });
             }
