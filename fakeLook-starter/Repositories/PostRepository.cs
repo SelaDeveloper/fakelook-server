@@ -92,7 +92,16 @@ namespace fakeLook_starter.Repositories
             // Add new userTagged to post
             foreach (var userTagged in userTaggedList)
             {
-                int id = _userRepository.GetByUserName(userTagged.User.UserName).Id;
+                int id = 0;
+                User user1 = _userRepository.GetByUserName(userTagged.User.UserName);
+                if (user1 != null) 
+                { 
+                    id = user1.Id;
+                }
+                else
+                {
+                    continue;
+                } 
                 res.Entity.UserTaggedPost.Add(new UserTaggedPost { UserId = id, PostId = item.Id });
                 //res.Entity.UserTaggedPost.Add(userTagged);
             }

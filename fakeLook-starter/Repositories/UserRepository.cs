@@ -75,7 +75,8 @@ namespace fakeLook_starter.Repositories
 
         public User GetByUserName(string username)
         {
-            return _context.Users.SingleOrDefault(p => p.UserName == username);
+             var temp = _context.Users.SingleOrDefault(p => p.UserName == username);
+             return temp;
         }
 
         
