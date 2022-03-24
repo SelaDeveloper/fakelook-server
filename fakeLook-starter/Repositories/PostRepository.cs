@@ -151,11 +151,29 @@ namespace fakeLook_starter.Repositories
 
         public ICollection<Post> GetByPredicate(Func<Post, bool> predicate)
         {
-            return _context.Posts.Include(p => p.Tags)
+            return _context.Posts.OrderByDescending(d => d.Date)
+                .Include(p => p.Likes)
+                .Include(p => p.Tags)
+                .Include(p => p.User)
                 .Include(p => p.UserTaggedPost)
                 .ThenInclude(p => p.User)
-                .Select(DtoLogicReduced)
-                .Where(predicate).ToList();
+                .Include(p => p.Comments)
+                .ThenInclude(p => p.User)
+                .Include(p => p.Comments)
+                .ThenInclude(c => c.Tags)
+                .Include(p => p.Comments)
+                .ThenInclude(c => c.UserTaggedComment)
+                .ThenInclude(p => p.User)
+                .Select(DtoLogic)
+                .Where(predicate)
+                .ToList();
+            //return _context.Posts.Include(p => p.Tags)
+            //    .Include(p => p.UserTaggedPost)
+            //    .ThenInclude(p => p.User)
+            //    .Include(p => p.Comments)
+            //    .Include(p => p.Likes)
+            //    .Select(DtoLogicReduced)
+            //    .Where(predicate).ToList();
         }
 
         public string ConvetUserIdToUserName(int id)
